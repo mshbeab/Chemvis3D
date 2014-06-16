@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ChemVis 3D beta</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" href="{{STATIC_URL}}/Libs/jquery/multiselect/jquery.multiselect.css" rel="stylesheet" />
+		<link type="text/css" href="{{STATIC_URL}}/Libs/jquery/jquery-ui-1.8.23.custom/css/ui-darkness/jquery-ui-1.8.23.custom.css" rel="stylesheet" />
+		<link type="text/css" href="{{STATIC_URL}}basic.css" rel="stylesheet" />
+		<link rel="stylesheet" href="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb.css" type="text/css">
+	</head>
+	<body>
+	    
+		<span style="width:16% ;height:30px;float:left;font-size: 1.5em;">ChemVis 3D &#0153;</span>
+		<span id="main_menu_div" class="ui-widget-header ui-corner-all">
+			<button id="new_btn" >New</button>
+			<button id="print_btn" >Print</button>
+			<button id="zoom_out_btn" >Zoom Out</button>
+			<span> <input name="dbid_filter" id="dbid_filter" type="search" value=""  ></span>
+			<button id="search_btn" title="search"> &nbsp;</button>
+			<span class="collection_select_dialog" title="Choose a collection">
+		        <form name="select_collection" id="select_collection" action="/space_explorer/select_collection/" method="get" >
+		            {%csrf_token%} Current Colection 
+		            <select name="current_collection" id="current_collction">
+		                <option value="">-- Select a Collection -- </option>
+		            {% for collect in collections %}
+		                <option value="{{collect.id}}"> {{collect.name}}</option>
+	                {% endfor %}
+		            </select>
+		            <select name="current_mds_res" id="current_mds_res">
+		                <option value="">-- Select a MDS Result (Coordinates) -- </option>
+		            </select>
+		            <button name="choose_collection" id="choose_collection" >Show</button>
+	            </form>
+		    </span>
+		</span>
+		
+		<div class="chemical_menu_wrapper">
+			<div id="chemical_menu_div">
+				<div>
+				    <div>
+					    <h5><a href="#">Upload Collection</a></h5>
+					    <div> 
+					        <form name="upload_form"  id="upload_form" method="POST" action="/upload/"  enctype="multipart/form-data" >
+					        {% csrf_token %}
+					        <div class='file_container'>    
+					            <span> Collection File</span><br>
+					            <input name="collection_name" id="collection_name" placeholder="collection title" value=""> 
+					            <input name="collection_file" id="collction_file" type="file">
+				                <br><br>
+				                <button name='upload_btn' id='upload_btn' type="submit">Upload</button>    
+			                </form>
+		                </div>
+	                </div>
+			        <div>
+					    <h5><a href="#">Upload Meta Information</a></h5>
+					    <div> 
+			                <form name="meta_upload_form"  id="meta_upload_form" method="POST" action="/space_explorer/upload_meta/"  enctype="multipart/form-data" >
+			                {% csrf_token %}
+				                <span> Meta Info File</span>
+				                <input name="metainfo_file" id="metainfo_file" type="file">
+				                <input name="key_col" id="key_col" type="number" min="0" placeholder="order of ID column" />
+				                <br><br>
+				                <button name='upload_meta_btn' id='upload_meta_btn' type="submit">Upload</button>
+				            </div>
+					        </form>
+					    </div>
+				    </div>
+				    <div>
+					    <h5><a href="#">Generate Coordinats</a></h5>
+					    <div>  <br/>
+				        <form name="mds_form"  id="mds_form" method="POST" action="/space_explorer/calc_mdsres/"  enctype="multipart/form-data" >
+			            {% csrf_token %}
+		                    <input name="mds_title" id="mds_title" placeholder="Coordinates Title" value="" ><br>
+		                    <select name="simmatrix_method" id="simmatrix_methods"  >
+		                        <option value="">--Select a Method --</option>
+		                        <option value="FP">FingerPrints Similarity</option>
+		                        <option value="eden">EDeN (Explicit Decomposition with Neighborhoods)</option>
+		                    </select><br>
+		                    <span> Collection File</span><br>
+		                    <select name="collection_id" id="collection_id">
+	                            <option value="">-- Select a Collection -- </option>
+	                        {% for collect in collections %}
+	                            <option value="{{collect.id}}"> {{collect.name}}</option>
+                            {% endfor %}
+	                        </select>
+	                        <br>
+                        <!--
+	                        <span> FingerPrint File </span><br>
+	                        <input name="fingerprint_file" id="fingerprint_file" type="file" />
+	                    -->
+	                           <!--
+                            <span> MDS Max Number of Iteration</span><br>
+	                        <input name="mds_max_iter" id="mds_max_iter" placeholder="MDS Maximum Itreation" value="" ><br>
+	                        <span> MDS Epslion </span><br>
+	                        <input name="mds_eps" id="mds_eps" placeholder="MDS EPS" value=""><br>
+	                        -->
+	                        <br>
+	                        <button name='mds_calc_btn' id='mds_calc_btn' type="submit">Calculate</button>    
+	                    </form>
+		                <br>
+					    </div>
+					
+				    </div>
+					<h5><a href="#">Filter</a></h5>
+				    <div>
+					    <div class="filter_container">
+					        <input name="filter_count" id="filter_count" type="hidden" value="1" >
+					        <form name="filter_form_1"  id="filter_form_1" method="POST" action="/space_explorer/filter_compounds/" class="filter_form">
+					            {% csrf_token %}
+					            <h3 class="filter_title">Filter 1 </h3>
+					            <input name="term_count" id="term_count" value="1" type='hidden' >
+					            <div class='terms_container'>    
+					                
+					                <div id ='term_1' class='term' >
+					                    <span style="margin:0 3px;float:right" class="delete_term" title="delete term"></span>
+					                    <span >
+					                    <select name='filter_key_1' id='filter_key_1' required class='filter_key'>
+					                        <option value="">-- Choose a field --</option>
+					                    </select>
+					                    <select name='filter_type_1' id='filter_type_1' class='filter_type'>
+					                        <option value="">-- Choose a type -- </option>
+					                        <option value='range'> Range </option>
+					                        <option value='multichoice'> Multi Choice </option>
+					                        <option value='text_search'> Text Search </option>
+					                    </select>
+					                    <input name='filter_value_1' id='filter_value_1' type='text' value='' hidden placeholder="text search" class='filter_text_value'> 
+					                    <input name='filter_value_from_1' id='filter_value_from_1' type='text' value='' hidden placeholder="from" class='filter_range_value'> 
+					                    <input name='filter_value_to_1' id='filter_value_to_1' type='text' value='' hidden placeholder="to" class='filter_range_value'>
+                                        <select name='filter_multi_value_1' id='filter_multi_value_1' class="filter_multi_value" hidden multiple="multiple" width="100px">
+					                         <option value="">-- Choose a values -- </option>
+					                    </select>
+					                    <br>
+					                    <select name='filter_terms_op_1' id='filter_terms_op_1' >
+					                        <option value='&'> And </option>
+					                        <option value='|'> Or </option  >
+					                    </select>
+					                    </span>
+                                        <hr>
+				                    </div>
+				                </div>
+				                <div class='effect_container'>
+				                    <select name="effect_type" id="effect_type" class="effect_type" required>
+				                        <option value="">-- Choose effect type -- </option>
+				                        <option value="color">change color </option>
+				                        <option value="hide">hide </option>
+				                        <option value="scale">change scale </option>
+				                    </select>
+				                    <br>
+				                    <input name="effect_color" id="effect_color" type="color"  value="" hidden ><br>
+				                    <input name="effect_scale" id="effect_scale" type="number"  hidden min="10" max="150" value="" step="5" placeholder="scale">
+				                </div>
+				                <br><br>
+				                <span>
+					                <button name='add_term' id='add_term' type="button">Term</button>
+				                </span>
+					            <span>
+					                <button name='filter_btn' id='filter_btn' type="submit">Filter</button>
+					            </span><br><br>
+					        </form>
+                        </div>
+                        <br>
+					    <span>
+					        <button name='add_filter' id='add_filter' type="button">Add Filter</button>
+					    </span>
+					    <span>
+				            <button name='clear_btn' id='clear_btn' type="button">clear</button>
+					    </span>
+					</div>
+					
+				</div>
+				
+			</div>
+		</div>
+		<div id="canvas_container_div"></div>
+		
+		<div class="details_div_wrapper">
+			<div id="details_div">
+				<div>
+					<h5><a href="#">Mol Details</a></h5>
+					<div >
+                        <span> show as graph :</span> <b><input  name="show_graph"  id="show_graph" type="checkbox" /></b><br><br>
+
+					    <span> number of neighbours :</span> <b><span id="nslider_value">5</span></b><br><br>
+					    <div id="number_of_neighbours" style="width:80%" ></div><br>
+					    <span> threshold :</span> <b><span id="tslider_value">0.75</span></b><br><br>
+					    <div id="tinamoto_threshold" style="width:80%" ></div><br><br>
+					    <div id="details_stats">stats</div>
+					</div>
+				</div>
+				<div>
+					<h5><a href="#">Universe Details</a></h5>
+					<div>stats</div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="status_div" hidden>Frames Per Second : some stats heres
+			<div id="progressbar"></div>
+		</div>
+		<div class="alert_choose_collection " title="notification">
+		   <span class="ui-icon ui-icon-info" style="float: left; margin: 0 7px 50px 0;"></span>
+            Please Select a Collection and Coordinates
+		</div>
+	    
+		<script src="{{STATIC_URL}}Libs/threeJs/three.min.js"></script>
+        <script src="{{STATIC_URL}}Libs/threeJs/OrbitControls.js"></script>
+        <script src="{{STATIC_URL}}Libs/threeJs/threex.domevent.js"></script>
+<!--		<script src="Libs/threeJs/threex.domevent.object3d.js"></script>-->
+        <script src="{{STATIC_URL}}Libs/jquery/jquery-1.8.1.min.js"></script>
+		<script src="{{STATIC_URL}}Libs/jquery/jquery-ui-1.8.23.custom/js/jquery-ui-1.8.23.custom.min.js"></script>
+		<script src="{{STATIC_URL}}Libs/jquery/multiselect/jquery.multiselect.min.js"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb-libs.js"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb.js"></script>
+		
+		
+		<script src="{{STATIC_URL}}Libs/ChemVis3D.js"></script>
+<!--		<script src="js/Stats.js"></script>-->
+
+		<script>
+			
+			// SetUp UI
+			$(function(){
+
+				// Accordion
+				$("#chemical_menu_div").accordion({ header: "h5" ,fillSpace:true});
+				$("#chemical_menu_div").accordion( "option", "active", 1 );
+				$("#details_div").accordion({ header: "h5" ,fillSpace:true});
+                
+				
+				// Progressbar
+				//$("#progressbar").progressbar({
+				//	value: 70
+				//});
+				
+				//Main Menu
+				$("#new_btn").button({
+				    icons: {
+					primary: "ui-icon-document"
+				    }
+				})
+				
+				$("#open_btn").button({
+				    icons: {
+					primary: "ui-icon-folder-open"
+				    }
+				})
+				
+				$("#choose_collection").button({
+				    icons: {
+					primary: "ui-icon-disk"
+				    }
+				})
+				
+				$("#print_btn").button({
+				    icons: {
+					primary: "ui-icon-print"
+				    }
+				})
+				
+				$("#zoom_out_btn").button({
+				    icons: {
+					primary: "ui-icon-zoomout"
+				    }
+				})
+				
+				$("#search_btn").button({
+				    icons: {
+					primary: "ui-icon-search"
+				    },
+                    text: false
+
+				})
+				
+				;
+				/*
+				$(".collection_select_dialog").dialog({
+				    autoOpen : false ,
+				    height: 150,
+                    width: 350
+				})
+				*/
+				
+				
+				$("#add_term").button({
+				    icons: {
+					primary: "ui-icon-plus"
+				    }
+				})
+
+				$(".delete_term").button({
+				    icons: {
+					primary: "ui-icon-close"
+				    },
+                    text: false
+				})
+
+				$("#filter_btn").button({
+				    icons: {
+					primary: "ui-icon-search"
+				    }
+				})
+				
+				$("#add_filter").button({
+				    icons: {
+					primary: "ui-icon-plus"
+				    }
+				})
+				
+				
+				$("#clear_btn").button({
+				    icons: {
+					primary: "ui-icon-trash"
+				    }
+				})
+				
+				$("#number_of_neighbours").slider({
+				    min: 0 ,
+				    max: 10 ,
+				    value : 5 ,
+				    slide: function( event, ui ) {
+                        $( "#nslider_value" ).html(ui.value);
+                      }
+				})
+				
+				$("#tinamoto_threshold").slider({
+				    min: 0,
+				    max: 100 ,
+				    value: 75 ,
+				    slide: function( event, ui ) {
+                        $( "#tslider_value" ).html(ui.value/100);
+                      }
+				})
+				
+				$(".alert_choose_collection").dialog({
+				    autoOpen : false ,
+				    buttons: {
+                        Ok: function() {
+                          $( this ).dialog( "close" );
+                        }
+                    }
+				})
+				
+				clearSession = function(){
+				    $.ajax({ 
+                        data: {"opreation" : "clear_session"}, // get the form data
+                        type: "GET", // GET or POST
+                        url: "/space_explorer/clear_session/", // the file to call
+                        success: function(response) { // on success..
+                            window.location = "/space_explorer/"                           
+                        }
+                    });
+                    return false;
+				}
+				
+				$("#new_btn").bind("click",function(){clearSession()})
+				$("#print_btn").bind("click",function(){var dataURL = $("#canvas_container_div canvas")[0].toDataURL();window.open(dataURL,'target=_blank,toolbar=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=no');})
+				$("#zoom_out_btn").bind("click",function(){resetCamera()})
+				//$("#open_btn").bind("click",function(){$(".collection_select_dialog").dialog( "open" );})
+				$("#search_btn").bind("click",function(){lookAtParticle(findParticle(search_compound($("#dbid_filter").val())[0]))})
+				//$("#dbid_filter").bind("click",function(){lookAtParticle(findParticle($("#dbid_filter").val()))})
+
+				
+				
+				populate_field_names = function(){
+				    fields = get_comp_field_names()
+				    var key_select = $('.filter_key')
+				    key_select.find('option').remove() 
+				    key_select.append($("<option />").val("").text("-- Choose a field --"));
+				    $.each(fields, function(k,v) {
+                        key_select.append($("<option />").val(v).text(v));
+                    });
+				}
+				
+                populate_field_names()
+                
+                
+                
+                
+                $(".filter_key").change(function(){
+                    console.log("key changed - " + $(this).val())
+                    populate_multi_choice($(this))
+                })
+                
+                
+                populate_multi_choice = function(term_key){
+                    console.log(term_key)
+                    multival_select =  term_key.siblings(".filter_multi_value")
+                    multival_select.find('option').remove()
+                    values = get_field_values(term_key.val())
+				    $.each(values, function(k,v) {
+                        multival_select.append($("<option />").val(v).text(v));
+                    });
+                    //multival_select.multiselect()
+                }
+                
+                $(".filter_type").change(function(){
+                    
+                    range_dom =  $(this).siblings(".filter_range_value")
+                    multi_value_dom = $(this).siblings(".filter_multi_value")
+                    txt_value_dom =  $(this).siblings(".filter_text_value")
+                    console.log($(this).val())
+                    switch($(this).val()){
+                        
+                        case "range" :
+                            range_dom.show()
+                            multi_value_dom.hide()
+                            txt_value_dom.hide()                                                                             
+                            break ;
+                            
+                        case "multichoice":  
+                            range_dom.hide()
+                            multi_value_dom.show()
+                            txt_value_dom.hide()         
+                            populate_multi_choice($(this).siblings(".filter_key"))
+                            break ;
+                        
+                        case "text_search":  
+                            range_dom.hide()
+                            multi_value_dom.hide()
+                            txt_value_dom.show()
+                            break ;
+                            
+                        default :
+                            range_dom.hide()
+                            multi_value_dom.hide()
+                            txt_value_dom.hide()
+                            break ;
+                    }
+                })
+                
+                
+                deleteTerm = function(del_btn){
+                    var parentContainer = del_btn.parent(".term")
+                    var term_form = $(parentContainer).parents('form')
+                    var count = term_form.find("#term_count");
+
+                    console.log(count)
+                    console.log(parentContainer)
+                    if( count.val() > 1){
+                        parentContainer.remove() ;
+                        count.val(count.val()-1)
+                        term_form.find('.term').each(function(n){
+                            $(this).find('input,select').each(function(k){
+                                this.id = this.id.slice(0,this.id.lastIndexOf("_"))+'_'+(n+1) ;
+                                this.name = this.name.slice(0,this.name.lastIndexOf("_"))+'_'+(n+1) ;
+                            })
+                        }) ;
+
+
+                        $(".delete_term").button({icons: {primary: "ui-icon-close"},text: false})
+                    }
+                }
+                
+                addNewTerm = function(ff){
+                                    
+                    var x = parseInt(ff.find('#term_count').val()) + 1 ;
+	                clonedTerm = $(ff.find(".term")[0]).clone(true).attr({'id':'term_'+x}) ;
+	                //clonedTerm.find(".term_num").html(x) ;
+	                clonedTerm.find("input,select").each(function(){
+		                this.id = this.id.slice(0,this.id.lastIndexOf("_"))+'_'+x ;
+		                this.name = this.name.slice(0,this.name.lastIndexOf("_"))+'_'+x ;
+		                this.value = ''  ;
+	                }) ;
+	                
+	                //clonedTerm.find("#term_delete").bind('click',deleteTerm) ;
+	                
+	                ff.find('.terms_container').append(clonedTerm) ;
+	                ff.find('#term_count').val(x) ;
+                }
+
+
+
+                $('#add_term').bind("click",function(){addNewTerm($(this).parents("form"))})
+                $(".delete_term").bind("click",function(){deleteTerm($(this))})
+                
+                
+                
+
+
+                addNewFilter = function(){
+                
+                    var x = parseInt($('#filter_count').val()) + 1 ;
+                     
+	                clonedFilter = $("#filter_form_1").clone(true).attr({'id':'filter_form_'+x}) ;
+	                
+	                clonedFilter.find("#filter_delete").bind('click',deleteFilter) ;
+
+	                clonedFilter.find(".filter_title").html("Filter "+x) ;
+	                
+	                
+	                $('.filter_container').append(clonedFilter) ;
+	                $('#filter_count').val(x) ;
+                }
+
+
+                deleteFilter = function(){
+
+                }
+
+                $('#add_filter').bind("click",function(){addNewFilter()})
+                
+                
+                
+                
+                
+                applyEffect = function(comp,eff_type,eff_value){
+                
+                    switch(eff_type){
+                        case "color" :
+                             var ec = parseInt(eff_value.substr(1,7),16)
+                             
+                             $.each(comp,function(key,value){
+		                        var cc = changColor(value,ec) 
+		                     })
+                            break ;
+                        
+                        case "scale" :
+                             var es = parseInt(eff_value)
+                             $.each(comp,function(key,value){
+		                        var cc = changScale(value,es) 
+		                     })
+                            break ;
+                        case "hide" :
+                             $.each(comp,function(key,value){
+		                        var cc = hideParticle(value) 
+		                     })
+                            break ;
+                        default :
+                            alert("Pleas Select an effect type !") ;
+                            break ;
+                    
+                    } 
+                }
+                
+                $(".filter_form").submit(function(){
+                    var ff= $(this)
+                    $.ajax({ 
+                        data: $(this).serialize(), // get the form data
+                        type: $(this).attr('method'), // GET or POST
+                        url: $(this).attr('action'), // the file to call
+                        success: function(response) { // on success..
+                            console.log(response); // update the DIV
+                            applyEffect(response.filterd_compound ,ff.find("#effect_type").val(),(ff.find("#effect_type").val()=="color")?ff.find("#effect_color").val():ff.find("#effect_scale").val())
+                           
+                        }
+                    });
+                    return false;
+                })
+                
+                
+              
+                
+                $("#select_collection").submit(function(){
+                    $.ajax({ 
+                        data: $(this).serialize(), // get the form data
+                        type: $(this).attr('method'), // GET or POST
+                        url: $(this).attr('action'), // the file to call
+                        success: function(response) { // on success..
+                            console.log(response); // update the DIV 
+                            init('{{STATIC_URL}}');
+			                animate();
+			                populate_field_names() ;
+                        }
+                    });
+                    return false;
+                })
+                
+                /*
+                $("#meta_upload_form").submit(function(){
+                    $.ajax({ 
+                        data: $(this).serialize(), // get the form data
+                        type: $(this).attr('method'), // GET or POST
+                        url: $(this).attr('action'), // the file to call
+                        success: function(response) { // on success..
+                            console.log(response); // update the DIV    
+                        }
+                    });
+                    return false;
+                })
+                */
+                
+                 $("#current_collction").change(function(){
+                    if ($(this).val() !=""){
+                        $.ajax({ 
+                            data: {"collection_id":$(this).val()}, // get the form data
+                            type:"get" ,
+                            url: "/space_explorer/get_collect_mdsres/", // the file to call
+                            success: function(response) { // on success..
+                                console.log(response); // update the DIV
+                                current_mds_res_select = $("#current_mds_res")
+				                current_mds_res_select.find("option").remove()
+				                current_mds_res_select.append($("<option />").val("").text("-- Select a MDS Result (Coordinates) --"))
+				                
+				                $.each(response.mdsresults, function(k,v) {
+                                     current_mds_res_select.append($("<option />").val(v.id).text(v.title));
+                                });
+
+                                {% if current_mds %}
+                                    current_mds_res_select.val('{{current_mds }}');
+                                {% endif %}
+
+                            }
+                        });
+                        return false;
+                    }
+                })
+                
+                $(".effect_type").change(function(){
+                    if (this.value == "color"){
+                        $(this).siblings("#effect_color").show()
+                        $(this).siblings("#effect_scale").hide()
+                    
+                    }else if(this.value == "scale"){
+                        $(this).siblings("#effect_color").hide()
+                        $(this).siblings("#effect_scale").show()
+                    }else{
+                        $(this).siblings("#effect_color").hide()
+                        $(this).siblings("#effect_scale").hide()
+                    }
+                        
+                })
+               
+                $("#clear_btn").bind("click",function(){clearEffects()})               	
+
+                $("#show_graph").change(function(){
+                    if (this.checked){
+                        neighbors =  get_neighbors()
+                        drawGraph(neighbors)
+                    }else{
+                        removeAllLines()
+                    }
+                })
+				
+				
+				{% if current_collction %}
+			        init('{{STATIC_URL}}');
+			        animate();
+                    $('#current_collction').val('{{ current_collction }}');
+                    $('#current_collction').trigger("change")
+			    {% else %}
+			        $(".alert_choose_collection").dialog("open")
+			    {% endif %}
+			
+			}) ;
+
+		</script>
+	</body>
+</html>

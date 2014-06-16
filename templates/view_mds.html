@@ -1,0 +1,27 @@
+<!-- view_sim.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <link type="text/css" href="{{STATIC_URL}}basic.css" rel="stylesheet" />
+  </head> 
+  <style>
+    div { font: 15px 'Comic Sans MS';}
+    h2 { font:  15px 'Comic Sans MS'  ;color :#5555EA }
+  </style>
+  <body>
+    <span style="height:30px;font-size: 1.5em;"><a href="../" style="color:white">ChemVis 3D</a> &#0153;</span>
+    <br/><br/>
+   
+    <br/>
+   
+  
+    
+    {% for value,comp in data %}
+    
+        {{ value }} ----- {{comp}}  <br/><br/>
+
+    {% endfor %}
+   
+  </body>
+</html>
+

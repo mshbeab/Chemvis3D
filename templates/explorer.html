@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ChemVis 3D beta</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" href="{{STATIC_URL}}/Libs/jquery/multiselect/jquery.multiselect.css" rel="stylesheet" />
+		<link type="text/css" href="{{STATIC_URL}}/Libs/jquery/jquery-ui-1.8.23.custom/css/ui-darkness/jquery-ui-1.8.23.custom.css" rel="stylesheet" />
+		<link type="text/css" href="{{STATIC_URL}}basic.css" rel="stylesheet" />
+		<link rel="stylesheet" href="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb.css" type="text/css">
+	</head>
+	<body>
+	    
+		<span style="width:16% ;height:30px;float:left;font-size: 1.5em;">ChemVis 3D &#0153;</span>
+		<span id="main_menu_div" class="ui-widget-header ui-corner-all">
+			<button id="new_btn" >New</button>
+			<button id="print_btn" >Print</button>
+			<button id="zoom_out_btn" >Zoom Out</button>
+			<span> <input name="dbid_filter" id="dbid_filter" type="search" value=""  ></span>
+			<button id="search_btn" title="search"> &nbsp;</button>
+			<span class="collection_select_dialog" title="Choose a collection">
+		        <form name="select_collection" id="select_collection" action="/space_explorer/select_collection/" method="get" >
+		            {%csrf_token%} Current Colection 
+		            <select name="current_collection" id="current_collction">
+		                <option value="">-- Select a Collection -- </option>
+		            {% for collect in collections %}
+		                <option value="{{collect.id}}"> {{collect.name}}</option>
+	                {% endfor %}
+		            </select>
+		            <select name="current_mds_res" id="current_mds_res">
+		                <option value="">-- Select a Embedding Result (Coordinates) --</option>
+		            </select>
+		            <button name="choose_collection" id="choose_collection" >Show</button>
+	            </form>
+		    </span>
+		</span>
+		
+		<div class="chemical_menu_wrapper">
+			<div id="chemical_menu_div">
+				<div>
+				    <div>
+					    <h5><a href="#">Upload Collection</a></h5>
+					    <div> 
+					        <form name="upload_form"  id="upload_form" method="POST" action="/upload/"  enctype="multipart/form-data" >
+					        {% csrf_token %}
+					        <div class='file_container'>    
+					            <span> Collection File</span><br>
+					            <input name="collection_name" id="collection_name" placeholder="collection title" value=""> 
+					            <input name="collection_file" id="collction_file" type="file">
+				                <br><br>
+				                <button name='upload_btn' id='upload_btn' type="submit">Upload</button>    
+			                </form>
+		                </div>
+	                </div>
+			        <div>
+					    <h5><a href="#">Upload Meta Information</a></h5>
+					    <div> 
+			                <form name="meta_upload_form"  id="meta_upload_form" method="POST" action="/space_explorer/upload_meta/"  enctype="multipart/form-data" >
+			                {% csrf_token %}
+				                <span> Meta Info File</span>
+				                <input name="metainfo_file" id="metainfo_file" type="file">
+				                <input name="key_col" id="key_col" type="number" min="0" placeholder="order of ID column" />
+				                <br><br>
+				                <button name='upload_meta_btn' id='upload_meta_btn' type="submit">Upload</button>
+				            </div>
+					        </form>
+					    </div>
+				    </div>
+				    <div>
+					    <h5><a href="#">Generate Coordinats</a></h5>
+					    <div>  <br/>
+				        <form name="mds_form"  id="mds_form" method="POST" action="/space_explorer/calc_pos/"  enctype="multipart/form-data" >
+			            {% csrf_token %}
+		                    <input name="pos_title" id="mds_title" placeholder="Coordinates Title" value="" ><br>
+		                    <select name="method" id="simmatrix_methods"  >
+		                        <option value="">--Select a Method --</option>
+                                <option value="" disabled>***   Simlarity Matrix Based (with MDS)   ***</option>
+		                        <option value="FP">FingerPrints Similarity</option>
+		                        <option value="eden">EDeN (Explicit Decomposition with Neighborhoods)</option>
+                                <option value="pre_cluster_eden">Pre-Cluster EDeN (Explicit Decomposition with Neighborhoods)</option>
+                                <option value="" disabled>***   Feature Based(with PCA)    ***</option>
+                                <option value="pre_cluster_eden_pca">Pre-Cluster EDeN with PCA Embedding</option>
+		                    </select><br>
+		                    <span> Collection File</span><br>
+		                    <select name="collection_id" id="collection_id">
+	                            <option value="">-- Select a Collection -- </option>
+	                        {% for collect in collections %}
+	                            <option value="{{collect.id}}"> {{collect.name}}</option>
+                            {% endfor %}
+	                        </select>
+	                        <br>
+                        <!--
+	                        <span> FingerPrint File </span><br>
+	                        <input name="fingerprint_file" id="fingerprint_file" type="file" />
+	                    -->
+	                           <!--
+                            <span> MDS Max Number of Iteration</span><br>
+	                        <input name="mds_max_iter" id="mds_max_iter" placeholder="MDS Maximum Itreation" value="" ><br>
+	                        <span> MDS Epslion </span><br>
+	                        <input name="mds_eps" id="mds_eps" placeholder="MDS EPS" value=""><br>
+	                        -->
+	                        <br>
+	                        <button name='mds_calc_btn' id='mds_calc_btn' type="submit">Calculate</button>    
+	                    </form>
+		                <br>
+					    </div>
+					
+				    </div>
+					<h5><a href="#">Filter</a></h5>
+				    <div>
+					    <div class="filter_container">
+					        <input name="filter_count" id="filter_count" type="hidden" value="1" >
+					        <form name="filter_form_1"  id="filter_form_1" method="POST" action="/space_explorer/filter_compounds/" class="filter_form">
+					            {% csrf_token %}
+					            <h3 class="filter_title">Filter 1 </h3>
+					            <input name="term_count" id="term_count" value="1" type='hidden' >
+					            <div class='terms_container'>    
+					                
+					                <div id ='term_1' class='term' >
+					                    <span style="margin:0 3px;float:right" class="delete_term" title="delete term"></span>
+					                    <span >
+					                    <select name='filter_key_1' id='filter_key_1' required class='filter_key'>
+					                        <option value="">-- Choose a field --</option>
+					                    </select>
+					                    <select name='filter_type_1' id='filter_type_1' class='filter_type'>
+					                        <option value="">-- Choose a type -- </option>
+					                        <option value='range'> Range </option>
+					                        <option value='multichoice'> Multi Choice </option>
+					                        <option value='text_search'> Text Search </option>
+					                    </select>
+					                    <input name='filter_value_1' id='filter_value_1' type='text' value='' hidden placeholder="text search" class='filter_text_value'> 
+					                    <input name='filter_value_from_1' id='filter_value_from_1' type='text' value='' hidden placeholder="from" class='filter_range_value'> 
+					                    <input name='filter_value_to_1' id='filter_value_to_1' type='text' value='' hidden placeholder="to" class='filter_range_value'>
+                                        <select name='filter_multi_value_1' id='filter_multi_value_1' class="filter_multi_value" hidden multiple="multiple" width="100px">
+					                         <option value="">-- Choose a values -- </option>
+					                    </select>
+					                    <br>
+					                    <select name='filter_terms_op_1' id='filter_terms_op_1' >
+					                        <option value='&'> And </option>
+					                        <option value='|'> Or </option  >
+					                    </select>
+					                    </span>
+                                        <hr>
+				                    </div>
+				                </div>
+				                <div class='effect_container'>
+				                    <select name="effect_type" id="effect_type" class="effect_type" required>
+				                        <option value="">-- Choose effect type -- </option>
+				                        <option value="color">change color </option>
+				                        <option value="hide">hide </option>
+				                        <option value="scale">change scale </option>
+				                    </select>
+				                    <br>
+				                    <input name="effect_color" id="effect_color" type="color"  value="" hidden ><br>
+				                    <input name="effect_scale" id="effect_scale" type="number"  hidden min="10" max="150" value="" step="5" placeholder="scale">
+				                </div>
+				                <br><br>
+				                <span>
+					                <button name='add_term' id='add_term' type="button" title="Add Term"></button>
+				                </span>
+					            <span>
+					                <button name='filter_btn' id='filter_btn' title="Apply Effect" type="submit"></button>
+                                </span>
+                                <span>
+                                    <button name='filter_selected_btn' id='filter_selected_btn' title="Filter Selected" type="submit"></button>
+					            </span><br><br>
+					        </form>
+                        </div>
+                        <br>
+					    <span>
+					        <button name='add_filter' id='add_filter' type="button">Add Filter</button>
+					    </span>
+					    <span>
+				            <button name='clear_btn' id='clear_btn' type="button">clear</button>
+					    </span>
+					</div>
+					
+				</div>
+				
+			</div>
+		</div>
+		<div id="canvas_container_div"></div>
+		
+		<div class="details_div_wrapper">
+			<div id="details_div">
+				<div>
+					<h5><a href="#">Visualization Settings</a></h5>
+					<div >
+					    <b><input  name="consistent_embedding"  id="consistent_embedding" type="checkbox" /><label for="consistent_embedding">consistent embedding</label></b><br><br>
+                        <b><input  name="show_graph"  id="show_graph" type="checkbox" /><label for="show_graph">show as graph</label></b><br><br>
+
+					    <span> number of neighbours :</span> <b><span id="nslider_value">5</span></b><br><br>
+					    <div id="number_of_neighbours" style="width:80%" ></div><br>
+					    <span> threshold :</span> <b><span id="tslider_value">0.75</span></b><br><br>
+					    <div id="tinamoto_threshold" style="width:80%" ></div><br><br>
+					    <span> Cluster size Threshold :</span> <b><span id="visible_clusters_size_value">0</span></b><br><br>
+					    <div id="visible_clusters_size" style="width:80%" ></div><br><br>
+					    
+					    
+					</div>
+				</div>
+				<div>
+					<h5><a href="#">Compound Details</a></h5>
+					<div id="details_stats">stats</div>
+				</div>
+				<div>
+					<h5><a href="#">Selected Compounds</a></h5>
+					 <div>
+                        <button name='generate_mol_btn' id='generate_mol_btn' title="generate new molecule" >Generate new molecule</button><br><br>
+                        <div id="selectedCompoundsDiv">Selecte by clicking</div>
+                     </div>
+				</div>
+			</div>
+		</div>
+		<div id="loading_div" hidden >Loading... <img src='/static/resources/ajax-loader-1.gif' /></div>
+		<div class="alert_choose_collection " title="notification">
+		   <span class="ui-icon ui-icon-info" style="float: left; margin: 0 7px 50px 0;"></span>
+            Please Select a Collection and Coordinates
+		</div>
+	    <div class="cluster_info" title="Cluster Details">
+		   <span class="ui-icon ui-icon-info" style="float: left; margin: 0 7px 50px 0;"></span>
+            cluster information
+		</div>
+		<script src="{{STATIC_URL}}Libs/threeJs/three.62.js"></script>
+        <script src="{{STATIC_URL}}Libs/threeJs/OrbitControls.js"></script>
+        <script src="{{STATIC_URL}}Libs/threeJs/threex.domevent.js"></script>
+<!--		<script src="Libs/threeJs/threex.domevent.object3d.js"></script>-->
+        <script src="{{STATIC_URL}}Libs/jquery/jquery-1.8.1.min.js"></script>
+		<script src="{{STATIC_URL}}Libs/jquery/jquery-ui-1.8.23.custom/js/jquery-ui-1.8.23.custom.min.js"></script>
+		<script src="{{STATIC_URL}}Libs/jquery/multiselect/jquery.multiselect.min.js"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb-libs.js"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb.js"></script>
+        <script src="{{STATIC_URL}}Libs/dat.gui.min.js"></script>
+
+		
+		
+		<script src="{{STATIC_URL}}Libs/ChemVis3D.js"></script>
+		<script src="{{STATIC_URL}}Libs/ui_util.js"></script>
+		
+<!--		<script src="js/Stats.js"></script>-->
+
+		<script>
+
+
+           $(function(){
+				
+				current_mds =''
+				
+	            {% if current_mds %}
+                    current_mds = '{{current_mds }}';
+                {% endif %}
+				
+				
+				init_ui() 
+
+				{% if current_collction %}
+			        init('{{STATIC_URL}}');
+			        animate();
+                    $('#current_collction').val('{{ current_collction }}');
+                    $('#current_collction').trigger("change")
+			    {% else %}
+			        $(".alert_choose_collection").dialog("open")
+			    {% endif %}
+			
+			}) ;
+
+		</script>
+	</body>
+</html>

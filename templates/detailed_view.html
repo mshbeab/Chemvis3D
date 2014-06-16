@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<link rel="stylesheet" href="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb.css" type="text/css">
+<style>
+			html{
+				height : 100% ;
+			}
+			body {
+				background-color: #111111;
+				margin: 0px;
+				padding: 0px;
+				height: 100%;
+				width : 100% ;
+				color: white;
+    			font: 15px ariel;
+				
+			}
+</style>
+<script type="text/javascript" src="{{STATIC_URL}}Libs/jquery/jquery-1.8.1.min.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb-libs.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}Libs/ChemDoodleWeb/install/ChemDoodleWeb.js"></script>
+<script src="{{STATIC_URL}}Libs/ChemVis3D.js"></script>
+
+<title>3D ChemDoodle Web Component using WebGL : Interactive Unit Cell Structure of Zeolite MAZ</title>
+</head>
+<body>
+<br>
+<h2>{{response.compound.generic_name}} </h2>
+<br>
+<canvas id="2dcanvas"></canvas>
+<script> 
+ // load data from CIF file, unit cell is automatically generated
+	 draw2DStructure("{{response.compound.mol|escapejs}}",'400','480' , 16)
+</script>
+<br>
+
+<table>
+    <tr>
+        <td nowrap><b>ID </b></td>
+        <td>{{response.compound.name}}</td>
+    </tr>
+    <tr>
+        <td nowrap ><b>SMILES </b></td>
+        <td>{{response.compound.smiles}}</td>
+    </tr>
+    <tr>
+        <td ><b>Molecular Weight  </b></td>
+        <td>{{response.compound.mol_weight}}</td>
+    </tr>
+    <tr>
+        <td><b>Ring Count </b></td>
+        <td>{{response.compound.ring_count}}</td>
+    </tr>
+    <tr>
+        <td><b>INCHI </b></td>
+        <td>{{response.compound.inchi}}</td>
+    </tr>
+    {% for rows in response.dfield_values %}
+    <tr>
+        <td><b>{{rows.field}}</b></td>
+        <td>{{rows.val|join:", "}}</td>
+    </tr>
+    {% endfor %}
+
+
+</table>
+<br/>
+<b>Similar Compounds :</b><br/><br/>
+<table border="1">
+    <tr>
+        <td>MolId</td>
+        <td>Similarity</td>
+        <td>2D Structure</td>
+    </tr>
+    {% for neighbor in response.compound.neighbors %}
+    <tr>
+
+        <td><a style="color: white" href='./?name={{neighbor.mol_id}}' target='_blank'>{{neighbor.mol_id}}</a> </td>
+        <td>{{ neighbor.val|floatformat:"-4" }}</td>
+        <td><canvas id="{{neighbor.mol_id}}"></canvas> <script>draw2DStructure(get_comp_mol('{{neighbor.mol_id|escapejs}}'),'200','240' , 10,"{{neighbor.mol_id}}")</script></td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+</body>
+</html>

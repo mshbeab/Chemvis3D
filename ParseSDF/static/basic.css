@@ -1,0 +1,105 @@
+html{
+	height : 100% ;
+}
+
+
+body {
+	background-color: #111111;
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+	width : 100% ;
+	color: white;
+	font: 15px fantasy;
+	
+}
+
+a {
+	color:#0078ff;
+}
+
+button{
+	height : 28px ;
+	font: 9px fantasy;
+}
+
+
+#main_menu_div{
+	width:83% ;
+	height : 30px ;		
+	display:inline-block;
+}
+
+#chemical_menu_div{
+	width:  100% ;
+	height : 100% ;
+	float : left ;		
+}
+
+.chemical_menu_wrapper{
+	height : 85% ;
+	width:  16%;
+	float : left ;	
+}
+
+.details_div_wrapper{
+	height : 85% ;
+	width:  15%;
+	float : right ;	
+}
+
+#details_div{
+	width: 100% ;
+	height : 85% ;
+	float : right ;		
+}
+
+#canvas_container_div{
+	display:inline-block;
+	border:1px solid #EFEFEF ;	
+	height : 85% ;
+	width: 67%;
+	align : center ;
+	margin : 5px ;
+}
+
+#status_div {
+	width : 100% ;
+	height : 30px ;		
+	margin-top : 10px ;	
+}
+
+.ui-widget {
+    font-family: Arial,sans-serif;
+    font-size: 0.8em;
+}
+
+.collection_select_dialog{
+    float:right
+}
+
+.filter_form {
+    border: 1px solid white;
+    border-radius : 20px ;
+    padding: 10px;
+    margin-bottom : 10px ; 
+}
+
+.delete_term {
+    width: 1.5em;
+    height :1.5em;
+}
+
+#simmatrix_methods{
+    width:150px;
+}
+
+#simmatrix_methods option[disabled] {
+    color: red;
+    text-align:center;
+}
+
+#current_mds_res option[disabled] {
+    color: red;
+    text-align:center;
+}

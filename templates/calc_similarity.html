@@ -1,0 +1,18 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="{{STATIC_URL}}basic.css" rel="stylesheet" type="text/css">
+  </head> 
+  <body>
+    <span style="height:30px;font-size: 1.5em;"><a href="../" style="color:white">ChemVis 3D</a> &#0153; - {{view_titel}}</span>
+    <br/><br/>
+{{status}}
+ <form method="post" action="/similarity/" enctype="multipart/form-data">
+{% csrf_token %}     
+{{ form }}
+<input name="upload" type="submit">
+ </form>
+  </body>
+</html>
+
